@@ -8,26 +8,35 @@
   </head>
   <body>
     <header>battleship</header>
-
+    <div class="info-bar" clearfix>
+      <span class="info-bar-title">INFO</span>
+      <span class="info-bar-text"></span>
+    </div>
     <main>
       <div class="score-board clearfix">
-        <h1>Place your ships:</h1>
-        <p><span>1</span> x &#x1f532;&#x1f532;&#x1f532;&#x1f532;&#x1f532;</p>
-        <p><span>1</span> x &#x1f532;&#x1f532;&#x1f532;&#x1f532;</p>
-        <p><span>2</span> x &#x1f532;&#x1f532;&#x1f532;</p>
-        <p><span>3</span> x &#x1f532;&#x1f532;</p>
+        <h3>MY BOARD</h3>
+        <p>My ships:</p>
+        <p><span id="ship-5-nums"></span> x &#x1f532;&#x1f532;&#x1f532;&#x1f532;&#x1f532;</p>
+        <p><span id="ship-4-nums"></span> x &#x1f532;&#x1f532;&#x1f532;&#x1f532;</p>
+        <p><span id="ship-3-nums"></span> x &#x1f532;&#x1f532;&#x1f532;</p>
+        <p><span id="ship-2-nums"></span> x &#x1f532;&#x1f532;</p>
+        <p role="button" id="clear-button">CLEAR BOARD</p>
+        <p role="button" id="play-button">PLAY</p>
       </div>
 
       <!--div id="enemy-field" class="field-container"></div-->
+
       <div id="my-field" class="field-container clearfix">
 
-    <div id="pointer" class="clearfix">
-      <div class="clearfix">
-        <div class="clearfix"></div>
-      </div>
-    </div>
+        <div id="pointer" class="clearfix">
+          <div class="clearfix">
+            <div class="clearfix"></div>
+          </div>
+        </div>
 
       </div>
+
+
 
 
     </main>

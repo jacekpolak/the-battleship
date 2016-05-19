@@ -47,6 +47,14 @@ body {
   zoom: 1; // ie 6/7
 }
 
+h3 {
+  background: $color-black;
+  color: $color-white;
+  line-height: 2em;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
 main {
   text-align: center;
   height: 100%;
@@ -56,10 +64,37 @@ main {
   background: $color-white;
   float: left;
   height: $field-size*10;
-  padding: 10px;
+  margin-left: 10px;
+  //padding: 10px;
   text-align: left;
   width: 200px;
+  box-shadow: 1px 1px 5px #333 ;
+
+  p {
+    margin-left: 10px;
+    margin-right: 10px;
+  }
 }
+
+[role="button"] {
+
+  @extend p;
+
+  background: $color-white;
+  border: 1px $color-black solid;
+  color: $color-black;
+  cursor: pointer;
+  font-weight: bold;
+  line-height: 2em;
+  margin-top: 10px;
+  text-align: center;
+
+  &:hover {
+    background: $color-black;
+    color: $color-white;
+  }
+}
+
 
 .field-container {
   border-top: 1px $color-lightblue solid;
@@ -68,6 +103,7 @@ main {
   width: calc(10 * #{$field-size} + 1px);
   //cursor: none;
   position: relative;
+  //box-shadow: 1px 1px 5px #333;
 }
 
 .field {
@@ -77,6 +113,7 @@ main {
   float: left;
   height: $field-size;
   width: $field-size;
+  //box-shadow: inset 1px 1px 5px #333;
 }
 
 .ship {
@@ -124,7 +161,7 @@ main {
     top: 0;
     left: 0;
     animation: missing 0.6s ease-out infinite;*/
-    animation: missing-x 1s ease-out infinite;
+    //animation: missing-x 1s ease-out infinite;
     border-right: 1px $color-white solid;
     content: "";
     height: $field-size;
@@ -145,7 +182,7 @@ main {
     top: 0;
     left: 0;
     animation: missing 0.6s ease-out 0.4s infinite ;*/
-    animation: missing-x 1s ease-out infinite;
+    //animation: missing-x 1s ease-out infinite;
     border-left: 1px $color-white solid;
     content: "";
     height: $field-size;
@@ -242,4 +279,23 @@ main {
 
     }
   }
+}
+
+.info-bar {
+  background: $color-white;
+  box-shadow: 1px 1px 5px #333;
+  margin: 10px;
+  text-align: left;
+
+  span {
+    display: inline-block;
+    padding: 10px;
+  }
+
+  &-title {
+    background: $color-black;
+    color: $color-white;
+    font-weight: bold;
+  }
+
 }
