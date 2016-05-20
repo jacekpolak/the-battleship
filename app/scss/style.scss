@@ -2,11 +2,13 @@ $color-black: #000000;
 $color-white: #ffffff;
 $color-lightblue: #cedde8;
 $color-text: #333333;
-$color-navy: #1585a6;
+$color-navy: #0e5371;//#1585a6;
 $color-red: #ea4e00;
 $color-orange: #ee9324;
 $color-yellow: #eebc24;
 $color-grey: #b2b2b2;
+$color-border: #ffffff;
+$color-navy1: #166ca6;
 
 $field-size: 30px;
 
@@ -25,7 +27,7 @@ body {
   background: $color-navy;
   background-size: cover;
   color: $color-text;
-  font-family: Arial, "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+  font-family: helvetica, "Lucida Sans Unicode", "Lucida Grande", sans-serif;
   height: 100%;
   line-height: 1.5em;
   text-align: center;
@@ -63,9 +65,8 @@ main {
 .score-board {
   background: $color-white;
   float: left;
-  height: $field-size*10;
+  height: $field-size*11;
   margin-left: 10px;
-  //padding: 10px;
   text-align: left;
   width: 200px;
   box-shadow: 1px 1px 5px #333 ;
@@ -95,25 +96,56 @@ main {
   }
 }
 
+.board-container {
+  width: 11 * $field-size + 1;
+  float: left;
+}
 
-.field-container {
-  border-top: 1px $color-lightblue solid;
-  border-left: 1px $color-lightblue solid;
-  margin: 100px auto;
-  width: calc(10 * #{$field-size} + 1px);
-  //cursor: none;
+#p2 {
+  margin-left: 210px;
+  margin-top: 50px;
+}
+
+.board-top-bar {
+  color: $color-white;
+  float: left;
+
+  div {
+    float: left;
+  }
+}
+
+.board-left-bar {
+  color: $color-white;
+  float: left;
+  height: 10 * $field-size;
+  margin-top: $field-size;
+  width: $field-size;
+}
+
+.field-side {
+  font-size: 0.7em;
+  height: $field-size;
+  line-height: 28px;
+  width: $field-size;
+}
+
+
+
+.board {
+  border-top: 1px $color-border solid;
+  border-left: 1px $color-border solid;
+  float: left;
   position: relative;
-  //box-shadow: 1px 1px 5px #333;
+  width: calc(10 * #{$field-size} + 1px);
 }
 
 .field {
-  border-bottom: 1px $color-lightblue solid;
-  border-right: 1px $color-lightblue solid;
-  display: table-cell;
+  border-bottom: 1px $color-border solid;
+  border-right: 1px $color-border solid;
   float: left;
   height: $field-size;
   width: $field-size;
-  //box-shadow: inset 1px 1px 5px #333;
 }
 
 .ship {
@@ -192,7 +224,6 @@ main {
     transform: rotate(-45deg);
     width: $field-size;
   }
-
 }
 
 #pointer {
@@ -281,9 +312,11 @@ main {
   }
 }
 
+
 .info-bar {
   background: $color-white;
   box-shadow: 1px 1px 5px #333;
+  font-weight: bold;
   margin: 10px;
   text-align: left;
 
@@ -295,7 +328,6 @@ main {
   &-title {
     background: $color-black;
     color: $color-white;
-    font-weight: bold;
   }
 
 }

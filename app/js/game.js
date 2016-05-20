@@ -3,7 +3,9 @@
 var Game = (function () {
   "use strict";
 
-  var myBoard = document.querySelector("#my-field"),
+  var p1Board = document.querySelector("#p1"),
+    p2Board = document.querySelector("#p2"),
+    p2BoardShips = p2Board.querySelector(".board"),
     clearButton = document.querySelector("#clear-button"),
     playButton = document.querySelector("#play-button"),
     infoText = document.querySelector(".info-bar-text"),
@@ -48,8 +50,9 @@ var Game = (function () {
 
     currSelection = [];
 
-  function setInfoText() {
-    infoText.innerHTML = infoTextArr[state];
+  function setInfoText(text) {
+    var text = text || infoTextArr[state];
+    infoText.innerHTML = text;
   }
 
   function clearBoard() {
@@ -60,6 +63,9 @@ var Game = (function () {
       player1Board[i] = false;
       document.querySelector("#f" + i).classList.remove("ship");
     }
+
+    resetShipNums();
+
   }
 
   function playGame() {
@@ -70,14 +76,32 @@ var Game = (function () {
 
   function drawField(board) {
 
-    var i, j, field;
+    var i, j, field, letter = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"],
+      topDiv = board.querySelector(".board-top-bar"),
+      leftDiv = board.querySelector(".board-left-bar");
+
+    for (i = 0; i < 10; i++) {
+      field = document.createElement("div");
+      field.classList.add("field-side");
+      //field.classList.add("clearfix");
+      field.innerHTML = (i + 1);
+      leftDiv.appendChild(field);
+    }
+
+    for (i = 0; i < 10; i++) {
+      field = document.createElement("div");
+      field.classList.add("field-side");
+      //field.classList.add("clearfix");
+      field.innerHTML = letter[i];
+      topDiv.appendChild(field);
+    }
 
     for (i = 0; i < 100; i++) {
       field = document.createElement("div");
       field.classList.add("field");
       field.classList.add("clearfix");
       field.id = "f" + i;
-      board.appendChild(field);
+      board.querySelector(".board").appendChild(field);
     }
   }
 
@@ -95,6 +119,8 @@ var Game = (function () {
     e.stopPropagation();
     var target = e.target || e.srcElement,
       fId = target.id.substr(1, 2);
+
+    Connection.send(fId);
 
     if (player1Board[fId] === true) {
       target.classList.add("burned");
@@ -144,8 +170,8 @@ var Game = (function () {
 
   function endShip(e) {
     console.log("endShip");
-    myBoard.removeEventListener("mousemove", selectShip);
-    myBoard.removeEventListener("mouseup", endShip);
+    p1Board.removeEventListener("mousemove", selectShip);
+    p1Board.removeEventListener("mouseup", endShip);
 
     if (currSelection.length === 1 || currSelection.length > 5 || SHIPNUMS[currSelection.length] === 0) {
       deselectShip();
@@ -173,15 +199,20 @@ var Game = (function () {
     }
     console.log("setShip");
     selectShip(e);
-    myBoard.addEventListener("mousemove", selectShip);
-    myBoard.addEventListener("mouseup", endShip);
+    p1Board.addEventListener("mousemove", selectShip);
+    p1Board.addEventListener("mouseup", endShip);
   }
 
-  function initScoreBoard() {
+  function resetShipNums() {
+    SHIPNUMS = {"5": 1, "4": 1, "3": 2, "2": 3};
     shipNumText[5].innerHTML = SHIPNUMS[5];
     shipNumText[4].innerHTML = SHIPNUMS[4];
     shipNumText[3].innerHTML = SHIPNUMS[3];
     shipNumText[2].innerHTML = SHIPNUMS[2];
+  }
+
+  function initScoreBoard() {
+    resetShipNums();
   }
 
   function updateShipsNum() {
@@ -198,27 +229,32 @@ var Game = (function () {
 
 
   function init() {
-    drawField(myBoard);
+
+    Connection.init();
+
+    drawField(p1Board);
+    drawField(p2Board);
     initScoreBoard();
     initPlayerBoard();
 
     state = SHIPS_INIT;
     setInfoText();
 
-    myBoard.addEventListener("click", hitField);
+    p2BoardShips.addEventListener("click", hitField);
 
-    //myBoard.addEventListener("mousemove", Pointer.set);
-    //myBoard.addEventListener("mouseover", Pointer.show);
-    //myBoard.addEventListener("mouseout", Pointer.hide);
+    p2BoardShips.addEventListener("mousemove", Pointer.set);
+    p2BoardShips.addEventListener("mouseover", Pointer.show);
+    p2BoardShips.addEventListener("mouseout", Pointer.hide);
 
-    myBoard.addEventListener("mousedown", setShip);
+    p1Board.addEventListener("mousedown", setShip);
 
     clearButton.addEventListener("click", clearBoard);
     playButton.addEventListener("click", playGame);
   }
 
   return {
-    init: init
+    init: init,
+    setInfoText: setInfoText
   };
 
 }());
