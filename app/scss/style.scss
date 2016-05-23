@@ -59,14 +59,15 @@ h3 {
 
 main {
   text-align: center;
-  height: 100%;
+  width: 531px;
+  margin: 0 auto;
 }
 
 .score-board {
   background: $color-white;
   float: left;
   height: $field-size*11;
-  margin-left: 10px;
+  //margin-left: 10px;
   text-align: left;
   width: 200px;
   box-shadow: 1px 1px 5px #333 ;
@@ -102,6 +103,7 @@ main {
 }
 
 #p2 {
+  clear: both;
   margin-left: 210px;
   margin-top: 50px;
 }
@@ -317,7 +319,7 @@ main {
   background: $color-white;
   box-shadow: 1px 1px 5px #333;
   font-weight: bold;
-  margin: 10px;
+  margin: 10px 0;
   text-align: left;
 
   span {

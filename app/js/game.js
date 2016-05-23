@@ -19,11 +19,12 @@ var Game = (function () {
 
     state,
     // states
-    SHIPS_INIT = 0,
-    READY = 1,
-    PLAYER1_TURN = 2,
-    PLAYER2_TURN = 3,
-    GAMEOVER = 4,
+    INIT_CONNECTION = 0,
+    SHIPS_INIT = 1,
+    READY = 2,
+    PLAYER1_TURN = 3,
+    PLAYER2_TURN = 4,
+    GAMEOVER = 5,
 
     infoTextArr = [
       "Place your ships on the board",
@@ -32,6 +33,8 @@ var Game = (function () {
       "Player 2 turn...",
       "Game Over!"
     ],
+
+    UID = null,
 
     config = {
       mode: null,
@@ -51,7 +54,7 @@ var Game = (function () {
     currSelection = [];
 
   function setInfoText(text) {
-    var text = text || infoTextArr[state];
+    text = text || infoTextArr[state];
     infoText.innerHTML = text;
   }
 
@@ -69,9 +72,11 @@ var Game = (function () {
   }
 
   function playGame() {
-    //state = READY;
-    state = PLAYER1_TURN;
+    state = READY;
+    //state = PLAYER1_TURN;
+    Connection.send(JSON.stringify({state: state}));
     setInfoText();
+    p1Board.style.opacity = 0.4;
   }
 
   function drawField(board) {
