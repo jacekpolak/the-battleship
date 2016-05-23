@@ -29,7 +29,8 @@ gulp.task('watch', ['browserSync', 'build-css'], function () {
 gulp.task('browserSync', function () {
   browserSync.init({
     server: {
-      baseDir: 'app'
+      baseDir: 'app',
+      port: 8080
     }
   });
 });
