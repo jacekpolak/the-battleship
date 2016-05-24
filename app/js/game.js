@@ -1,4 +1,5 @@
 /*jslint plusplus: true*/
+/*exported Game*/
 
 var Game = (function () {
   "use strict";
@@ -9,6 +10,7 @@ var Game = (function () {
     clearButton = document.querySelector("#clear-button"),
     playButton = document.querySelector("#play-button"),
     infoText = document.querySelector(".info-bar-text"),
+    gameOver = document.querySelector(".game-over"),
 
     shipNumText = {
       "5": document.querySelector("#ship-5-nums"),
@@ -22,11 +24,13 @@ var Game = (function () {
     INIT_CONNECTION = 0,
     SHIPS_INIT = 1,
     READY = 2,
-    PLAYER1_TURN = 3,
-    PLAYER2_TURN = 4,
-    GAMEOVER = 5,
+    PLAYING = 3,
+    WAITING = 4,
+      END  = 5,
+    GAMEOVER = false,
 
     infoTextArr = [
+      "Connecting...",
       "Place your ships on the board",
       "Waiting for your oponent...",
       "It's your turn!",
@@ -34,7 +38,22 @@ var Game = (function () {
       "Game Over!"
     ],
 
-    UID = null,
+    winText = "Congratulations!!!\nYou win !!!",
+    failText = "You lost!!!\nTry again!",
+
+    fId,
+
+    player1 = {
+      uid: null,
+      state: INIT_CONNECTION,
+      firstTurn: false
+    },
+
+    player2 = {
+      uid: null,
+      state: INIT_CONNECTION,
+      firstTurn: false
+    },
 
     config = {
       mode: null,
@@ -54,7 +73,7 @@ var Game = (function () {
     currSelection = [];
 
   function setInfoText(text) {
-    text = text || infoTextArr[state];
+    text = text || infoTextArr[player1.state];
     infoText.innerHTML = text;
   }
 
@@ -72,9 +91,10 @@ var Game = (function () {
   }
 
   function playGame() {
-    state = READY;
-    //state = PLAYER1_TURN;
-    Connection.send(JSON.stringify({state: state}));
+    console.log("playgame");
+    player1.state = READY;
+    player1.firstTurn = (player2.state !== READY) ? true : false;
+    Connection.send({state: READY});
     setInfoText();
     p1Board.style.opacity = 0.4;
   }
@@ -111,39 +131,25 @@ var Game = (function () {
   }
 
   function checkWin() {
+    console.log("checkWIn");
     return player1Board.includes(true)
       ? false
       : true;
   }
 
   function hitField(e) {
-    if (state !== PLAYER1_TURN) {
+
+
+    if (player1.state !== PLAYING) {
       return;
     }
 
+    console.log("Hit");
     e.stopPropagation();
-    var target = e.target || e.srcElement,
+    var target = e.target || e.srcElement;
       fId = target.id.substr(1, 2);
 
-    Connection.send(fId);
-
-    if (player1Board[fId] === true) {
-      target.classList.add("burned");
-    } else {
-      target.classList.add("missed");
-    }
-
-    //var target = document.elementFromPoint(e.pageX, e.pageY);
-    //target.classList.add("burned");
-    //target.classList.add("missed");
-
-    if (checkWin()) {
-      state = GAMEOVER;
-      setInfoText();
-    } else {
-      state = PLAYER2_TURN;
-      setInfoText();
-    }
+    Connection.send({state: PLAYING, fId: fId});
   }
 
 
@@ -231,6 +237,113 @@ var Game = (function () {
   }
 
 
+  function startPlay() {
+    console.log("startPlay " + player1.state);
+
+    if( player1.firstTurn ) {
+      player1.state = PLAYING;
+    } else {
+      player1.state = WAITING;
+    }
+  }
+
+  function onChangeState() {
+
+    console.log("onChangeState ", player1.state, player2.state );
+
+    if (player1.state === READY && player2.state === READY) {
+      startPlay();
+    }
+
+    setInfoText();
+
+  }
+
+
+  function checkHit(fId) {
+    console.log("checkHit");
+    var target = p1Board.querySelector("#f"+fId);
+    console.log(target)
+
+    if (player1Board[fId] === true) {
+      player1Board[fId] = false;
+      target.classList.add("burned");
+      Connection.send({state: WAITING, hit:true});
+    } else {
+      target.classList.add("missed");
+      Connection.send({state: WAITING, hit:false});
+    }
+
+    if (checkWin()) {
+      console.log("GAME OVER");
+      GAMEOVER = true;
+      //setInfoText();
+      Connection.send({state: END });
+      gameOver.style.display = "initial";
+      gameOver.querySelector("p").innerHTML = failText;
+    } else {
+      console.log("change turn");
+      player1.state = PLAYING;
+      setInfoText();
+    }
+  }
+
+  function onmessage(msg) {
+
+    if (msg.UID) {
+        player1.uid = msg.UID
+        player1.state = SHIPS_INIT;
+        setInfoText();
+      } else {
+
+        console.log("myID " + player1.uid)
+        if (msg.user !== player1.uid) {
+          console.log("player 2 ID " + msg.user);
+
+          if( msg.state === READY) {
+            player2.state = msg.state;
+            player2.firstTurn = (player1.state !== READY) ? true : false;
+
+          }
+
+          if( msg.state === PLAYING ) {
+            checkHit(msg.fId);
+          }
+
+          if( msg.state === WAITING ) {
+
+
+            console.log("checkedHit");
+            var target = p2Board.querySelector("#f"+fId);
+
+
+            if( msg.hit) {
+              target.classList.add("burned");
+            } else {
+              target.classList.add("missed");
+            }
+
+            player1.state = WAITING;
+
+          }
+
+          if( msg.state === END) {
+            gameOver.style.display = "initial";
+            gameOver.querySelector("p").innerHTML = winText;
+          }
+
+        }
+
+
+      }
+
+    onChangeState();
+
+  }
+
+
+
+
 
 
   function init() {
@@ -259,7 +372,8 @@ var Game = (function () {
 
   return {
     init: init,
-    setInfoText: setInfoText
+    setInfoText: setInfoText,
+    onmessage: onmessage
   };
 
 }());

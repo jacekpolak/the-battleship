@@ -5,7 +5,7 @@
 var WSServer = require('ws').Server,
   //server = ws.createServer(),
   server = new WSServer({port: 8080}),
-  userID  = 0,
+  userID  = 1,
   USERS = {},
   firstPlayer;
 
@@ -40,11 +40,12 @@ server.on("connection", function (ws) {
       return false;
     }
 
-    if (msg.state === 2) { //ready
+    //if (msg.state === 2) { //ready
+      msg.user = ws.id;
       server.clients.forEach(function (conn) {
-      conn.send(JSON.stringify(msg));
-    });
-    }
+        conn.send(JSON.stringify(msg));
+      });
+    //}
 
 
     /*var setBusy = function(id) {

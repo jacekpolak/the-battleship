@@ -1,4 +1,5 @@
 /*global WebSocket*/
+/*exported Connection*/
 
 var Connection = (function () {
   "use strict";
@@ -23,19 +24,15 @@ var Connection = (function () {
 
     socket.onmessage = function (e) {
       console.log('Received From Server: ' + e.data);
-      var receive = JSON.parse(e.data);
+      var resposne = JSON.parse(e.data);
+      Game.onmessage(resposne);
 
-      if (receive.UID) {
-        Game.UID = receive.UID
-      } else {
-
-      }
     };
   }
 
   function send(msg) {
     console.log("Sending " + msg)
-    socket.send(msg);
+    socket.send(JSON.stringify(msg));
   }
 
   return {
