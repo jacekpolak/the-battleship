@@ -1,12 +1,13 @@
 /*jslint plusplus: true*/
 /*exported Game*/
+/*global Connection, Board, Pointer, console*/
 
 var Game = (function () {
   "use strict";
 
-  var p1Board = document.querySelector("#p1"),
-    p2Board = document.querySelector("#p2"),
-    p2BoardShips = p2Board.querySelector(".board"),
+  var p1Board = Board.create("#p1", 0), //my //document.querySelector("#p1"),
+    p2Board = Board.create("#p2", 1),//document.querySelector("#p2"),
+    //p2BoardShips = p2Board.querySelector(".board"),
     clearButton = document.querySelector("#clear-button"),
     playButton = document.querySelector("#play-button"),
     infoText = document.querySelector(".info-bar-text"),
@@ -20,18 +21,21 @@ var Game = (function () {
     },
 
     state,
-    // states
+
+    // player states
     INIT_CONNECTION = 0,
     SHIPS_INIT = 1,
     READY = 2,
     PLAYING = 3,
     WAITING = 4,
-      END  = 5,
+    END  = 5,
+
+    // game state
     GAMEOVER = false,
 
     infoTextArr = [
       "Connecting...",
-      "Place your ships on the board",
+      "Place your ships on the board, than press PLAY button",
       "Waiting for your oponent...",
       "It's your turn!",
       "Player 2 turn...",
@@ -53,41 +57,11 @@ var Game = (function () {
       uid: null,
       state: INIT_CONNECTION,
       firstTurn: false
-    },
-
-    config = {
-      mode: null,
-      state: null
-    },
-
-    SHIPNUMS = {
-      "5": 1,
-      "4": 1,
-      "3": 2,
-      "2": 3
-    },
-
-    player1Board = [],
-    player2Board = [],
-
-    currSelection = [];
+    };
 
   function setInfoText(text) {
     text = text || infoTextArr[player1.state];
     infoText.innerHTML = text;
-  }
-
-  function clearBoard() {
-
-    var i;
-
-    for (i = 0; i < 100; i++) {
-      player1Board[i] = false;
-      document.querySelector("#f" + i).classList.remove("ship");
-    }
-
-    resetShipNums();
-
   }
 
   function playGame() {
@@ -96,45 +70,12 @@ var Game = (function () {
     player1.firstTurn = (player2.state !== READY) ? true : false;
     Connection.send({state: READY});
     setInfoText();
-    p1Board.style.opacity = 0.4;
-  }
-
-  function drawField(board) {
-
-    var i, j, field, letter = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"],
-      topDiv = board.querySelector(".board-top-bar"),
-      leftDiv = board.querySelector(".board-left-bar");
-
-    for (i = 0; i < 10; i++) {
-      field = document.createElement("div");
-      field.classList.add("field-side");
-      //field.classList.add("clearfix");
-      field.innerHTML = (i + 1);
-      leftDiv.appendChild(field);
-    }
-
-    for (i = 0; i < 10; i++) {
-      field = document.createElement("div");
-      field.classList.add("field-side");
-      //field.classList.add("clearfix");
-      field.innerHTML = letter[i];
-      topDiv.appendChild(field);
-    }
-
-    for (i = 0; i < 100; i++) {
-      field = document.createElement("div");
-      field.classList.add("field");
-      field.classList.add("clearfix");
-      field.id = "f" + i;
-      board.querySelector(".board").appendChild(field);
-    }
+    p1Board.lock();//style.opacity = 0.4;
   }
 
   function checkWin() {
     console.log("checkWIn");
-    return player1Board.includes(true)
-      ? false
-      : true;
+    return p1Board.checkWin();
   }
 
   function hitField(e) {
@@ -147,100 +88,28 @@ var Game = (function () {
     console.log("Hit");
     e.stopPropagation();
     var target = e.target || e.srcElement;
-      fId = target.id.substr(1, 2);
+    fId = target.id.substr(1, 2);
 
     Connection.send({state: PLAYING, fId: fId});
   }
 
-
-
-  function deselectShip() {
-    currSelection.map(function (elem) {
-      document.querySelector("#f" + elem).classList.remove("ship");
-
-    });
+  function updateShipsLeftNum() {
+    shipNumText[5].innerHTML = p1Board.SHIPNUMS[5];
+    shipNumText[4].innerHTML = p1Board.SHIPNUMS[4];
+    shipNumText[3].innerHTML = p1Board.SHIPNUMS[3];
+    shipNumText[2].innerHTML = p1Board.SHIPNUMS[2];
   }
 
-  function updatePlayerBoard() {
-    currSelection.map(function (elem) {
-      player1Board[elem] = true;
-    });
-  }
-
-  function selectShip(e) {
-    console.log("selectShip");
-    e.stopPropagation();
-    var target = e.target || e.srcElement,
-      fId = target.id.substr(1, 2);
-
-    if (!currSelection.includes(fId)) {
-      currSelection.push(fId);
-      target.classList.add("ship");
-    }
-  }
-
-  function endShip(e) {
-    console.log("endShip");
-    p1Board.removeEventListener("mousemove", selectShip);
-    p1Board.removeEventListener("mouseup", endShip);
-
-    if (currSelection.length === 1 || currSelection.length > 5 || SHIPNUMS[currSelection.length] === 0) {
-      deselectShip();
-    } else {
-      updateShipsNum();
-      updatePlayerBoard();
-    }
-
-    currSelection = [];
-  }
-
-  function getId(target) {
-    return target.id.substr(1, 2);
-  }
-
-  function isSelected(e) {
-    var target = e.target || e.srcElement,
-      fId = getId(target);
-    return player1Board[fId];
-  }
-
-  function setShip(e) {
-    if (state !== SHIPS_INIT || isSelected(e)) {
-      return;
-    }
-    console.log("setShip");
-    selectShip(e);
-    p1Board.addEventListener("mousemove", selectShip);
-    p1Board.addEventListener("mouseup", endShip);
-  }
-
-  function resetShipNums() {
-    SHIPNUMS = {"5": 1, "4": 1, "3": 2, "2": 3};
-    shipNumText[5].innerHTML = SHIPNUMS[5];
-    shipNumText[4].innerHTML = SHIPNUMS[4];
-    shipNumText[3].innerHTML = SHIPNUMS[3];
-    shipNumText[2].innerHTML = SHIPNUMS[2];
-  }
-
-  function initScoreBoard() {
-    resetShipNums();
-  }
-
-  function updateShipsNum() {
-    var len = currSelection.length;
-    SHIPNUMS[len]--;
-    shipNumText[len].innerHTML = SHIPNUMS[len];
-  }
 
   function initPlayerBoard() {
-    clearBoard();
+    //clearBoard();
   }
 
 
   function startPlay() {
     console.log("startPlay " + player1.state);
 
-    if( player1.firstTurn ) {
+    if (player1.firstTurn) {
       player1.state = PLAYING;
     } else {
       player1.state = WAITING;
@@ -249,7 +118,7 @@ var Game = (function () {
 
   function onChangeState() {
 
-    console.log("onChangeState ", player1.state, player2.state );
+    console.log("onChangeState ", player1.state, player2.state);
 
     if (player1.state === READY && player2.state === READY) {
       startPlay();
@@ -262,7 +131,7 @@ var Game = (function () {
 
   function checkHit(fId) {
     console.log("checkHit");
-    var target = p1Board.querySelector("#f"+fId);
+    /*var target = p1Board.board.querySelector("#f"+fId);
     console.log(target)
 
     if (player1Board[fId] === true) {
@@ -272,7 +141,10 @@ var Game = (function () {
     } else {
       target.classList.add("missed");
       Connection.send({state: WAITING, hit:false});
-    }
+    }*/
+
+    var hit = p1Board.checkHit(fId);
+    Connection.send({state: WAITING, hit: hit});
 
     if (checkWin()) {
       console.log("GAME OVER");
@@ -291,89 +163,78 @@ var Game = (function () {
   function onmessage(msg) {
 
     if (msg.UID) {
-        player1.uid = msg.UID
-        player1.state = SHIPS_INIT;
-        setInfoText();
-      } else {
+      player1.uid = msg.UID;
+      player1.state = SHIPS_INIT;
+      setInfoText();
+    } else {
 
-        console.log("myID " + player1.uid)
-        if (msg.user !== player1.uid) {
-          console.log("player 2 ID " + msg.user);
+      console.log("myID " + player1.uid);
+      if (msg.user !== player1.uid) {
+        console.log("player 2 ID " + msg.user);
 
-          if( msg.state === READY) {
-            player2.state = msg.state;
-            player2.firstTurn = (player1.state !== READY) ? true : false;
-
-          }
-
-          if( msg.state === PLAYING ) {
-            checkHit(msg.fId);
-          }
-
-          if( msg.state === WAITING ) {
-
-
-            console.log("checkedHit");
-            var target = p2Board.querySelector("#f"+fId);
-
-
-            if( msg.hit) {
-              target.classList.add("burned");
-            } else {
-              target.classList.add("missed");
-            }
-
-            player1.state = WAITING;
-
-          }
-
-          if( msg.state === END) {
-            gameOver.style.display = "initial";
-            gameOver.querySelector("p").innerHTML = winText;
-          }
-
+        if (msg.state === READY) {
+          player2.state = msg.state;
+          player2.firstTurn = (player1.state !== READY) ? true : false;
         }
 
+        if (msg.state === PLAYING) {
+          checkHit(msg.fId);
+        }
+
+        if (msg.state === WAITING) {
+
+          console.log("checkedHit");
+          var target = p2Board.board.querySelector("#f" + fId);
+
+          if (msg.hit) {
+            target.classList.add("burned");
+          } else {
+            target.classList.add("missed");
+          }
+
+          player1.state = WAITING;
+        }
+
+        if (msg.state === END) {
+          gameOver.style.display = "initial";
+          gameOver.querySelector("p").innerHTML = winText;
+        }
 
       }
+    }
 
     onChangeState();
-
   }
-
-
-
-
-
 
   function init() {
 
     Connection.init();
 
-    drawField(p1Board);
-    drawField(p2Board);
-    initScoreBoard();
-    initPlayerBoard();
+    p1Board.draw();//drawBoard(p1Board);
+    p2Board.draw();//drawBoard(p2Board);
+    //initPlayerBoard();
+
+    updateShipsLeftNum();//initScoreBoard();
 
     state = SHIPS_INIT;
     setInfoText();
 
-    p2BoardShips.addEventListener("click", hitField);
+    p1Board.board.addEventListener("mousedown", p1Board.setShip);
+    p2Board.subBoard.addEventListener("click", hitField);
+    p2Board.subBoard.addEventListener("mousemove", Pointer.set);
+    p2Board.subBoard.addEventListener("mouseover", Pointer.show);
+    p2Board.subBoard.addEventListener("mouseout", Pointer.hide);
 
-    p2BoardShips.addEventListener("mousemove", Pointer.set);
-    p2BoardShips.addEventListener("mouseover", Pointer.show);
-    p2BoardShips.addEventListener("mouseout", Pointer.hide);
-
-    p1Board.addEventListener("mousedown", setShip);
-
-    clearButton.addEventListener("click", clearBoard);
+    //clearButton.addEventListener("click", clearBoard);
+    clearButton.addEventListener("click", p1Board.clear);
     playButton.addEventListener("click", playGame);
   }
 
   return {
     init: init,
     setInfoText: setInfoText,
-    onmessage: onmessage
+    onmessage: onmessage,
+    updateShipsLeftNum: updateShipsLeftNum
   };
 
 }());

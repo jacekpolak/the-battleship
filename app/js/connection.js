@@ -1,4 +1,4 @@
-/*global WebSocket*/
+/*global WebSocket, Game*/
 /*exported Connection*/
 
 var Connection = (function () {
@@ -31,7 +31,7 @@ var Connection = (function () {
   }
 
   function send(msg) {
-    console.log("Sending " + msg)
+    console.log("Sending " + msg);
     socket.send(JSON.stringify(msg));
   }
 

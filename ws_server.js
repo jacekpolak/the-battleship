@@ -1,25 +1,22 @@
 
 /*jslint node:true */
+/*jslint plusplus: true*/
 
-//var ws = require('ws'),
+"use strict";
+
 var WSServer = require('ws').Server,
-  //server = ws.createServer(),
   server = new WSServer({port: 8080}),
   userID  = 1,
-  USERS = {},
-  firstPlayer;
+  USERS;
 
-//server.addListener("connection", function(conn){
+
 server.on("connection", function (ws) {
-  // send list with current users and add new user to the list afterwards
-  //console.log(JSON.stringify({task: 'listUsers', users : USERS}));
-
 
   ws.id = userID;
   ws.send(JSON.stringify({UID: ws.id}));
   userID++;
 
-  console.log("Client ID ", ws.id);
+  console.log("New client ID ", ws.id);
 
   USERS[ws.id] = {
     id:   ws.id,
@@ -30,7 +27,7 @@ server.on("connection", function (ws) {
   ws.on("message", function (message) {
     var msg;
 
-     console.log(message);
+    console.log(message);
 
     try {
       msg = JSON.parse(message);
@@ -40,49 +37,11 @@ server.on("connection", function (ws) {
       return false;
     }
 
-    //if (msg.state === 2) { //ready
-      msg.user = ws.id;
-      server.clients.forEach(function (conn) {
-        conn.send(JSON.stringify(msg));
-      });
-    //}
+    msg.user = ws.id;
+    server.clients.forEach(function (conn) {
+      conn.send(JSON.stringify(msg));
+    });
 
-
-    /*var setBusy = function(id) {
-      USERS[id].busy = true;
-      var msg = {task:'isPlaying',user:USERS[id]};
-      conn.broadcast(JSON.stringify(msg));
-      conn.write(JSON.stringify(msg));
-    };
-    var setFree = function(id) {
-      USERS[id].busy = true;
-      var msg = {task:'isFree',user:USERS[id]};
-      conn.broadcast(JSON.stringify(msg));
-      conn.write(JSON.stringify(msg));
-    };
-
-    if (msg.task == 'setNick') {
-      // set real nick and broadcast
-      USERS[conn.id].nick = msg.nick;
-      conn.broadcast(JSON.stringify({task:'addUser', user : USERS[conn.id] }));
-    }
-    else if (msg.task == 'setPlaying') {
-      setBusy(conn.id);
-      setBusy(msg.client);
-    }
-    else if (msg.task == 'setFree') {
-      setFree(conn.id);
-    }
-    else if (msg.task == 'private') {
-      // pass message to specified client only, add sender-ID to message
-      msg.from = USERS[conn.id];
-      conn.writeclient(JSON.stringify(msg),msg.client);
-    }
-    else {
-      // braodcast whatever comes in for now
-      msg.user = ws."ready"
-      ws.broadcast(JSON.stringify(msg));
-    }*/
   });
 });
 
@@ -94,6 +53,3 @@ server.on("close", function (ws) {
   delete USERS[ws.id];
 
 });
-
-//server.listen(8889);
-
