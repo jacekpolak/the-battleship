@@ -7,7 +7,7 @@
 var WSServer = require('ws').Server,
   server = new WSServer({port: 8080}),
   userID  = 1,
-  USERS;
+  USERS = {};
 
 
 server.on("connection", function (ws) {
