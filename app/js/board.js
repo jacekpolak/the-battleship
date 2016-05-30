@@ -7,18 +7,22 @@ var Board = (function () {
 
   function createBoard(board, type) {
 
-    var i, boardObj = {};
+    var i, boardObj,
+      boardDOM = document.querySelector(board),
+      startSelect, endSelect;
 
-    boardObj.locked = false;
-    boardObj.board = document.querySelector(board);
-    boardObj.subBoard = boardObj.board.querySelector(".board");
-    boardObj.fields = [];
-    boardObj.currSelection = [];
-    boardObj.SHIPNUMS = {
-      "5": 1,
-      "4": 1,
-      "3": 2,
-      "2": 3
+    boardObj = {
+      locked : false,
+      board : boardDOM,
+      subBoard : boardDOM.querySelector(".board"),
+      fields : [],
+      currSelection : [],
+      SHIPNUMS : {
+        "5": 1,
+        "4": 1,
+        "3": 2,
+        "2": 3
+      }
     };
 
     for (i = 0; i < 100; i++) {
@@ -52,32 +56,37 @@ var Board = (function () {
         field.classList.add("field");
         field.classList.add("clearfix");
         field.id = "f" + i;
+        field.innerHTML = i;
         this.board.querySelector(".board").appendChild(field);
       }
     };
 
     boardObj.resetShipNums = function () {
-      boardObj.SHIPNUMS = {"5": 1, "4": 1, "3": 2, "2": 3};
+      this.SHIPNUMS = {"5": 1, "4": 1, "3": 2, "2": 3};
       Game.updateShipsLeftNum();
     };
 
     boardObj.clear = function () {
       var i;
       for (i = 0; i < 100; i++) {
-        boardObj.fields[i] = false;
-        boardObj.board.querySelector("#f" + i).classList.remove("ship");
+        this.fields[i] = false;
+        this.board.querySelector("#f" + i).classList.remove("ship");
       }
-      boardObj.resetShipNums();
+      this.resetShipNums();
     };
 
-    boardObj.getId = function (target) {
-      return target.id.substr(1, 2);
+    boardObj.getId = function (e) {
+      var target = e.target || e.srcElement,
+        id = target.id.substr(1, 2);
+
+      return {
+        id: parseInt(id, 10),
+        target: target
+      };
     };
 
     boardObj.isSelected = function (e) {
-      var target = e.target || e.srcElement,
-        fId = this.getId(target);
-      console.log(this.fields[fId]);
+      var fId = this.getId(e).id;
       return this.fields[fId];
     };
 
@@ -89,59 +98,88 @@ var Board = (function () {
     };
 
     boardObj.updateFields = function () {
-      boardObj.currSelection.map(function (elem) {
-        boardObj.fields[elem] = true;
+      var self = this;
+      this.currSelection.map(function (elem) {
+        self.fields[elem] = true;
       });
     };
 
+    boardObj.isInLine = function (id) {
+      id = parseInt(id, 10);
+      if (this.currSelection.length === 0) {
+        return true;
+      }
+      var first = this.currSelection[0],
+        last = this.currSelection[this.currSelection.length - 1],
+        isHorizontal = ((id - 1) === last || (id + 1) === first)
+          ? true : false,
+        isVertical = ((id - 10) === last || (id + 10) === first)
+          ? true : false;
+
+      return (isHorizontal || isVertical);
+    };
+
     boardObj.selectShip = function (e) {
-      console.log("selectShip");
+
+      var fId = this.getId(e).id,
+        target = this.getId(e).target;
+
+      if (this.locked || this.isSelected(e) || !this.isInLine(fId)) {
+        return;
+      }
+
       e.stopPropagation();
-      var target = e.target || e.srcElement,
-        fId = target.id.substr(1, 2);
-      if (!boardObj.currSelection.includes(fId)) {
-        boardObj.currSelection.push(fId);
+
+      console.log("+ " + fId);
+
+      if (this.currSelection.length === 0 || !this.currSelection.includes(fId)) {
+
+        this.currSelection.push(fId);
+        this.currSelection.sort();
         target.classList.add("ship");
       }
     };
 
     boardObj.updateShipsNum =  function () {
       var len = boardObj.currSelection.length;
-      boardObj.SHIPNUMS[len]--;
+      this.SHIPNUMS[len]--;
       Game.updateShipsLeftNum();
     };
 
 
     boardObj.endShip = function (e) {
-      console.log("endShip");
-      boardObj.board.removeEventListener("mousemove", boardObj.selectShip);
-      boardObj.board.removeEventListener("mouseup", boardObj.endShip);
 
-      if (boardObj.currSelection.length === 1 || boardObj.currSelection.length > 5 || boardObj.SHIPNUMS[boardObj.currSelection.length] === 0) {
-        boardObj.deselectShip();
+      this.board.removeEventListener("mousemove", startSelect);
+      this.board.removeEventListener("mouseup", endSelect);
+
+      if (this.currSelection.length === 1 || this.currSelection.length > 5 || this.SHIPNUMS[this.currSelection.length] === 0) {
+        this.deselectShip();
       } else {
-        boardObj.updateShipsNum();
-        boardObj.updateFields();
+        this.updateShipsNum();
+        this.updateFields();
       }
-      boardObj.currSelection = [];
+      this.currSelection = [];
     };
 
+    startSelect = boardObj.selectShip.bind(boardObj);
+    endSelect = boardObj.endShip.bind(boardObj);
+
     boardObj.setShip = function (e) {
-      if (boardObj.locked || boardObj.isSelected(e)) {
+      if (this.locked || this.isSelected(e)) {
         return;
       }
       console.log("setShip");
-      boardObj.selectShip(e);
-      boardObj.board.addEventListener("mousemove", boardObj.selectShip);
-      boardObj.board.addEventListener("mouseup", boardObj.endShip);
+      this.selectShip(e);
+      this.board.addEventListener("mousemove", startSelect);
+      this.board.addEventListener("mouseup", endSelect);
     };
 
     boardObj.checkHit = function (fId) {
-      var target = boardObj.board.querySelector("#f" + fId),
-        hit = boardObj.fields[fId];
+      var target = this.board.querySelector("#f" + fId),
+        hit = this.fields[fId];
 
       if (hit) {
-        boardObj.fields[fId] = false;
+        this.fields[fId] = false;
         target.classList.add("burned");
       } else {
         target.classList.add("missed");
@@ -157,6 +195,7 @@ var Board = (function () {
     };
 
     boardObj.lock = function () {
+      boardObj.locked = true;
       boardObj.board.style.opacity = 0.4;
     };
 

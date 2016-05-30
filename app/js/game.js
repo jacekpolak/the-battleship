@@ -100,12 +100,6 @@ var Game = (function () {
     shipNumText[2].innerHTML = p1Board.SHIPNUMS[2];
   }
 
-
-  function initPlayerBoard() {
-    //clearBoard();
-  }
-
-
   function startPlay() {
     console.log("startPlay " + player1.state);
 
@@ -128,20 +122,8 @@ var Game = (function () {
 
   }
 
-
   function checkHit(fId) {
     console.log("checkHit");
-    /*var target = p1Board.board.querySelector("#f"+fId);
-    console.log(target)
-
-    if (player1Board[fId] === true) {
-      player1Board[fId] = false;
-      target.classList.add("burned");
-      Connection.send({state: WAITING, hit:true});
-    } else {
-      target.classList.add("missed");
-      Connection.send({state: WAITING, hit:false});
-    }*/
 
     var hit = p1Board.checkHit(fId);
     Connection.send({state: WAITING, hit: hit});
@@ -206,27 +188,29 @@ var Game = (function () {
     onChangeState();
   }
 
+  function clearBoard() {
+    p1Board.clear();
+  }
+
   function init() {
 
     Connection.init();
 
-    p1Board.draw();//drawBoard(p1Board);
-    p2Board.draw();//drawBoard(p2Board);
-    //initPlayerBoard();
+    p1Board.draw();
+    p2Board.draw();
 
-    updateShipsLeftNum();//initScoreBoard();
+    updateShipsLeftNum();
 
-    state = SHIPS_INIT;
     setInfoText();
 
-    p1Board.board.addEventListener("mousedown", p1Board.setShip);
+    p1Board.board.addEventListener("mousedown", p1Board.setShip.bind(p1Board));
     p2Board.subBoard.addEventListener("click", hitField);
     p2Board.subBoard.addEventListener("mousemove", Pointer.set);
     p2Board.subBoard.addEventListener("mouseover", Pointer.show);
     p2Board.subBoard.addEventListener("mouseout", Pointer.hide);
 
     //clearButton.addEventListener("click", clearBoard);
-    clearButton.addEventListener("click", p1Board.clear);
+    clearButton.addEventListener("click", clearBoard);
     playButton.addEventListener("click", playGame);
   }
 
