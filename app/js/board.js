@@ -68,10 +68,11 @@ var Board = (function () {
     };
 
     boardObj.clear = function () {
-      var i;
+      var i, cl;
       for (i = 0; i < 100; i++) {
         this.fields[i] = false;
-        this.board.querySelector("#f" + i).classList.remove("ship");
+        cl = this.board.querySelector("#f" + i).classList.item(2);
+        this.board.querySelector("#f" + i).classList.remove(cl);
       }
       this.resetShipNums();
     };
@@ -162,6 +163,13 @@ var Board = (function () {
       Game.updateShipsLeftNum();
     };
 
+    boardObj.updateShipColor = function () {
+      var board = this.subBoard;
+      this.currSelection.forEach(function(id,idx,arr){
+        board.querySelector("#f" + id).classList.remove("ship");
+        board.querySelector("#f" + id).classList.add("ship-"+arr.length);
+      });
+    };
 
     boardObj.endShip = function (e) {
 
@@ -173,6 +181,7 @@ var Board = (function () {
       } else {
         this.updateShipsNum();
         this.updateFields();
+        this.updateShipColor();
       }
       this.currSelection = [];
     };
