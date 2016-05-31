@@ -17,6 +17,7 @@ var Board = (function () {
       subBoard : boardDOM.querySelector(".board"),
       fields : [],
       currSelection : [],
+      selectDir : null, // 0 - horizontal, 1 - vertical
       SHIPNUMS : {
         "5": 1,
         "4": 1,
@@ -56,7 +57,7 @@ var Board = (function () {
         field.classList.add("field");
         field.classList.add("clearfix");
         field.id = "f" + i;
-        field.innerHTML = i;
+        //field.innerHTML = i;
         this.board.querySelector(".board").appendChild(field);
       }
     };
@@ -106,17 +107,32 @@ var Board = (function () {
 
     boardObj.isInLine = function (id) {
       id = parseInt(id, 10);
+
       if (this.currSelection.length === 0) {
         return true;
-      }
-      var first = this.currSelection[0],
-        last = this.currSelection[this.currSelection.length - 1],
-        isHorizontal = ((id - 1) === last || (id + 1) === first)
+      } else if (this.currSelection.length === 1) {
+        var diff = Math.abs(id - this.currSelection[0]);
+        if (diff === 1 || diff === 10) {
+          this.selectDir = diff;
+          return true;
+        }
+      } else {
+        var first = this.currSelection[0],
+          last = this.currSelection[this.currSelection.length - 1];
+
+        if (id - last === this.selectDir || first - id === this.selectDir) {
+          return true;
+        } else {
+          return false;
+        }
+        /*isHorizontal = ((id - 1) === last || (id + 1) === first)
           ? true : false,
         isVertical = ((id - 10) === last || (id + 10) === first)
           ? true : false;
+        return (isHorizontal || isVertical);
+        */
 
-      return (isHorizontal || isVertical);
+      }
     };
 
     boardObj.selectShip = function (e) {
