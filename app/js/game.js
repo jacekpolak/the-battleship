@@ -42,7 +42,7 @@ var Game = (function () {
       "Game Over!"
     ],
 
-    winText = "Congratulations!!!\nYou win !!!",
+    winText = "Congratulations!!!\nYou win!!!\nClick here to close",
     failText = "You lost!!!\nTry again!",
 
     fId,
@@ -200,7 +200,6 @@ var Game = (function () {
     p2Board.draw();
 
     updateShipsLeftNum();
-
     setInfoText();
 
     p1Board.board.addEventListener("mousedown", p1Board.setShip.bind(p1Board));
