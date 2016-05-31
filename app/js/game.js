@@ -5,13 +5,12 @@
 var Game = (function () {
   "use strict";
 
-  var p1Board = Board.create("#p1", 0), //my //document.querySelector("#p1"),
-    p2Board = Board.create("#p2", 1),//document.querySelector("#p2"),
-    //p2BoardShips = p2Board.querySelector(".board"),
+  var p1Board = Board.create("#p1", 0),
+    p2Board = Board.create("#p2", 1),
     clearButton = document.querySelector("#clear-button"),
     playButton = document.querySelector("#play-button"),
     infoText = document.querySelector(".info-bar-text"),
-    gameOver = document.querySelector(".game-over"),
+    popup = document.querySelector(".popup"),
 
     shipNumText = {
       "5": document.querySelector("#ship-5-nums"),
@@ -31,6 +30,7 @@ var Game = (function () {
     END  = 5,
 
     // game state
+    INGAME = false,
     GAMEOVER = false,
 
     infoTextArr = [
@@ -42,8 +42,9 @@ var Game = (function () {
       "Game Over!"
     ],
 
-    winText = "Congratulations!!!\nYou win!!!\nClick here to close",
+    winText = "Congratulations!!!\nYou win!!!",
     failText = "You lost!!!\nTry again!",
+    shipsLeftText = "You still have ships to place on the board",
 
     fId,
 
@@ -66,20 +67,29 @@ var Game = (function () {
 
   function playGame() {
     console.log("playgame");
-    player1.state = READY;
-    player1.firstTurn = (player2.state !== READY) ? true : false;
-    Connection.send({state: READY});
-    setInfoText();
-    p1Board.lock();//style.opacity = 0.4;
+    if (INGAME) {
+      return;
+    }
+
+    if (p1Board.allShipsPlaced()) {
+      INGAME = true;
+      player1.state = READY;
+      player1.firstTurn = (player2.state !== READY) ? true : false;
+      Connection.send({state: READY});
+      setInfoText();
+      p1Board.lock();//style.opacity = 0.4;
+      clearButton.style.opacity = 0.4;
+      playButton.style.opacity = 0.4;
+    } else {
+      showPopup(shipsLeftText);
+    }
   }
 
   function checkWin() {
-    console.log("checkWIn");
     return p1Board.checkWin();
   }
 
   function hitField(e) {
-
 
     if (player1.state !== PLAYING) {
       return;
@@ -117,9 +127,34 @@ var Game = (function () {
     if (player1.state === READY && player2.state === READY) {
       startPlay();
     }
-
     setInfoText();
+  }
 
+  function reset() {
+    p1Board.unlocked();
+    p1Board.clear();
+    p2Board.clear();
+    clearButton.style.opacity = 1;
+    playButton.style.opacity = 1;
+  }
+
+  function showPopup(text) {
+    popup.style.display = "initial";
+    popup.querySelector("p").innerHTML = text;
+  }
+
+  function hidePopup() {
+    popup.style.display = "none";
+    popup.querySelector("p").innerHTML = "";
+    if (GAMEOVER) {
+      reset();
+    }
+  }
+
+  function gameOver() {
+    GAMEOVER = true;
+    Connection.send({state: END });
+    showPopup(failText);
   }
 
   function checkHit(fId) {
@@ -129,12 +164,7 @@ var Game = (function () {
     Connection.send({state: WAITING, hit: hit});
 
     if (checkWin()) {
-      console.log("GAME OVER");
-      GAMEOVER = true;
-      //setInfoText();
-      Connection.send({state: END });
-      gameOver.style.display = "initial";
-      gameOver.querySelector("p").innerHTML = failText;
+      gameOver();
     } else {
       console.log("change turn");
       player1.state = PLAYING;
@@ -154,17 +184,17 @@ var Game = (function () {
       if (msg.user !== player1.uid) {
         console.log("player 2 ID " + msg.user);
 
-        if (msg.state === READY) {
+        switch (msg.state) {
+        case READY:
           player2.state = msg.state;
           player2.firstTurn = (player1.state !== READY) ? true : false;
-        }
+          break;
 
-        if (msg.state === PLAYING) {
+        case PLAYING:
           checkHit(msg.fId);
-        }
+          break;
 
-        if (msg.state === WAITING) {
-
+        case WAITING:
           console.log("checkedHit");
           var target = p2Board.board.querySelector("#f" + fId);
 
@@ -175,11 +205,12 @@ var Game = (function () {
           }
 
           player1.state = WAITING;
-        }
+          break;
 
-        if (msg.state === END) {
-          gameOver.style.display = "initial";
-          gameOver.querySelector("p").innerHTML = winText;
+        case END:
+          popup.style.display = "initial";
+          popup.querySelector("p").innerHTML = winText;
+          break;
         }
 
       }
@@ -211,6 +242,7 @@ var Game = (function () {
     //clearButton.addEventListener("click", clearBoard);
     clearButton.addEventListener("click", clearBoard);
     playButton.addEventListener("click", playGame);
+    popup.addEventListener("click", hidePopup);
   }
 
   return {

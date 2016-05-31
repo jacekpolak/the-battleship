@@ -17,7 +17,7 @@ var Board = (function () {
       subBoard : boardDOM.querySelector(".board"),
       fields : [],
       currSelection : [],
-      selectDir : null, // 0 - horizontal, 1 - vertical
+      selectDir : null, // 1 - horizontal, 10 - vertical
       SHIPNUMS : {
         "5": 1,
         "4": 1,
@@ -68,11 +68,17 @@ var Board = (function () {
     };
 
     boardObj.clear = function () {
+      if (this.locked) {
+        return;
+      }
+
       var i, cl;
       for (i = 0; i < 100; i++) {
         this.fields[i] = false;
         cl = this.board.querySelector("#f" + i).classList.item(2);
         this.board.querySelector("#f" + i).classList.remove(cl);
+        this.board.querySelector("#f" + i).classList.remove("burned");
+        this.board.querySelector("#f" + i).classList.remove("missed");
       }
       this.resetShipNums();
     };
@@ -108,31 +114,25 @@ var Board = (function () {
 
     boardObj.isInLine = function (id) {
       id = parseInt(id, 10);
+      var first, last, diff;
 
       if (this.currSelection.length === 0) {
         return true;
       } else if (this.currSelection.length === 1) {
-        var diff = Math.abs(id - this.currSelection[0]);
+        diff = Math.abs(id - this.currSelection[0]);
         if (diff === 1 || diff === 10) {
           this.selectDir = diff;
           return true;
         }
       } else {
-        var first = this.currSelection[0],
-          last = this.currSelection[this.currSelection.length - 1];
+        first = this.currSelection[0];
+        last = this.currSelection[this.currSelection.length - 1];
 
         if (id - last === this.selectDir || first - id === this.selectDir) {
           return true;
         } else {
           return false;
         }
-        /*isHorizontal = ((id - 1) === last || (id + 1) === first)
-          ? true : false,
-        isVertical = ((id - 10) === last || (id + 10) === first)
-          ? true : false;
-        return (isHorizontal || isVertical);
-        */
-
       }
     };
 
@@ -165,9 +165,9 @@ var Board = (function () {
 
     boardObj.updateShipColor = function () {
       var board = this.subBoard;
-      this.currSelection.forEach(function(id,idx,arr){
+      this.currSelection.forEach(function (id, idx, arr) {
         board.querySelector("#f" + id).classList.remove("ship");
-        board.querySelector("#f" + id).classList.add("ship-"+arr.length);
+        board.querySelector("#f" + id).classList.add("ship-" + arr.length);
       });
     };
 
@@ -222,6 +222,24 @@ var Board = (function () {
     boardObj.lock = function () {
       boardObj.locked = true;
       boardObj.board.style.opacity = 0.4;
+    };
+
+    boardObj.unlock = function () {
+      boardObj.locked = false;
+      boardObj.board.style.opacity = 1;
+    };
+
+    boardObj.allShipsPlaced = function () {
+      var ships = Object.keys(this.SHIPNUMS),
+        allplaced = true;
+
+      ships.forEach(function (ship) {
+        if (boardObj.SHIPNUMS[ship] > 0) {
+          allplaced = false;
+        }
+      });
+
+      return allplaced;
     };
 
     return boardObj;
